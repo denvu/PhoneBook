@@ -1,27 +1,27 @@
 "use strict";
 
 const data = [
-    {
-      name: 'Иван',
-      surname: 'Петров',
-      phone: '+79514545454',
-    },
-    {
-      name: 'Игорь',
-      surname: 'Семёнов',
-      phone: '+79999999999',
-    },
-    {
-      name: 'Семён',
-      surname: 'Иванов',
-      phone: '+79800252525',
-    },
-    {
-      name: 'Мария',
-      surname: 'Попова',
-      phone: '+79876543210',
-    },
-  ];
+  {
+    name: "Иван",
+    surname: "Петров",
+    phone: "+79514545454",
+  },
+  {
+    name: "Игорь",
+    surname: "Семёнов",
+    phone: "+79999999999",
+  },
+  {
+    name: "Семён",
+    surname: "Иванов",
+    phone: "+79800252525",
+  },
+  {
+    name: "Мария",
+    surname: "Попова",
+    phone: "+79876543210",
+  },
+];
 
 {
   const createContainer = () => {
@@ -93,6 +93,7 @@ const data = [
         <th>Имя</th>
         <th>Фамилия</th>
         <th>Телефон</th>
+        <th></th>
         </tr>
         `
     );
@@ -132,29 +133,29 @@ const data = [
     );
 
     const buttonGroup = createButtonsGroup([
-        {
-          className: "btn btn-primary mr-3",
-          type: "submit",
-          text: "Добавить",
-        },
-  
-        {
-          className: "btn btn-danger",
-          type: "reset",
-          text: "Отмена",
-        },
-      ]);
+      {
+        className: "btn btn-primary mr-3",
+        type: "submit",
+        text: "Добавить",
+      },
 
-      form.append(...buttonGroup.btns);
-      overlay.append(form);
+      {
+        className: "btn btn-danger",
+        type: "reset",
+        text: "Отмена",
+      },
+    ]);
 
-      return {
-        overlay,
-        form,
-      };
+    form.append(...buttonGroup.btns);
+    overlay.append(form);
+
+    return {
+      overlay,
+      form,
+    };
   };
 
-const createFooter = (title) => {
+  const createFooter = (title) => {
     const footer = document.createElement("footer");
     footer.classList.add("footer");
 
@@ -163,7 +164,7 @@ const createFooter = (title) => {
     footer.append(footerContainer);
 
     return footer;
-};
+  };
 
   const renderPhoneBook = (app, title) => {
     const header = createHeader();
@@ -171,7 +172,7 @@ const createFooter = (title) => {
     const main = createMain();
     const buttonGroup = createButtonsGroup([
       {
-        className: "btn btn-primary mr-3",
+        className: "btn btn-primary mr-3 js-add",
         type: "button",
         text: "Добавить",
       },
@@ -192,49 +193,92 @@ const createFooter = (title) => {
     app.append(header, main, footer);
 
     return {
-        list: table.tbody,
-    }
+      list: table.tbody,
+      logo,
+      btnAdd: buttonGroup.btns[0],
+      formOverlay: form.overlay,
+      form: form.form,
+    };
   };
 
-  const createRow = ({name: firstName, surname, phone}) => {
-    const tr = document.createElement('tr');
+  const createRow = ({ name: firstName, surname, phone, redact }) => {
+    const tr = document.createElement("tr");
 
-    const tdDel = document.createElement('td');
-    tdDel.classList.add('delete');
-    const buttonDel = document.createElement('button');
-    buttonDel.classList.add('del-icon');
+    const tdDel = document.createElement("td");
+    tdDel.classList.add("delete");
+    const buttonDel = document.createElement("button");
+    buttonDel.classList.add("del-icon");
     tdDel.append(buttonDel);
 
-    const tdName = document.createElement('td');
+    const tdName = document.createElement("td");
     tdName.textContent = firstName;
 
-    const tdSurname = document.createElement('td');
+    const tdSurname = document.createElement("td");
     tdSurname.textContent = surname;
 
-    const tdPhone = document.createElement('td');
-    const phoneLink = document.createElement('a');
+    const tdPhone = document.createElement("td");
+    const phoneLink = document.createElement("a");
     phoneLink.href = `tel:${phone}`;
     phoneLink.textContent = phone;
+    tr.phoneLink = phoneLink;
     tdPhone.append(phoneLink);
 
-    tr.append(tdDel, tdName, tdSurname, tdPhone);
-    
+    const tdRedact = document.createElement("td");
+    const btnRedact = document.createElement("button");
+    btnRedact.classList.add('btn-redact');
+    tdRedact.append(btnRedact);
+
+    tr.append(tdDel, tdName, tdSurname, tdPhone, tdRedact);
+
     return tr;
   };
 
   const renderContacts = (elem, data) => {
     const allRow = data.map(createRow);
     elem.append(...allRow);
+
+    return allRow;
+  };
+
+  const hoverRow = (allRow, logo) => {
+    const text = logo.textContent;
+    allRow.forEach((contact) => {
+      contact.addEventListener("mouseenter", () => {
+        logo.textContent = contact.phoneLink.textContent;
+      });
+      contact.addEventListener("mouseleave", () => {
+        logo.textContent = text;
+      });
+    });
   };
 
   const init = (selectorApp, title) => {
     const app = document.querySelector(selectorApp);
     const phoneBook = renderPhoneBook(app, title);
 
-    const {list} = phoneBook;
+    const { list, logo, btnAdd, formOverlay, form } = phoneBook;
 
-    renderContacts(list, data);
     //Функционал
+    const allRow = renderContacts(list, data);
+    hoverRow(allRow, logo);
+
+    btnAdd.addEventListener("click", () => {
+      formOverlay.classList.add("is-visible");
+    });
+
+    form.addEventListener('click', event => {
+      event.stopPropagation();
+    })
+
+    formOverlay.addEventListener('click', () => {
+      formOverlay.classList.remove("is-visible");
+    });
+
+    const btnClose = document.querySelector('.close');
+    btnClose.addEventListener('click', () => {
+      formOverlay.classList.remove("is-visible");
+    });
+
   };
 
   window.phoneBookInit = init;

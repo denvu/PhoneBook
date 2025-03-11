@@ -130,3 +130,9 @@ body {
   color: #fff;
   text-align: center;
 }
+
+.btn-redact {
+  width: 25px;
+  height: 25px;
+  background-image: url(/phonebook/img/redact.svg);
+}
