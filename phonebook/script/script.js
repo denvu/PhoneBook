@@ -1,32 +1,32 @@
 "use strict";
 
 const data = [
-  {
-    name: "Иван",
-    surname: "Петров",
-    phone: "+79514545454",
-  },
-  {
-    name: "Игорь",
-    surname: "Семёнов",
-    phone: "+79999999999",
-  },
-  {
-    name: "Семён",
-    surname: "Иванов",
-    phone: "+79800252525",
-  },
-  {
-    name: "Мария",
-    surname: "Попова",
-    phone: "+79876543210",
-  },
+  // {
+  //   name: "Иван",
+  //   surname: "Петров",
+  //   phone: "+79514545454",
+  // },
+  // {
+  //   name: "Игорь",
+  //   surname: "Семёнов",
+  //   phone: "+79999999999",
+  // },
+  // {
+  //   name: "Семён",
+  //   surname: "Иванов",
+  //   phone: "+79800252525",
+  // },
+  // {
+  //   name: "Мария",
+  //   surname: "Попова",
+  //   phone: "+79876543210",
+  // },
 ];
 
 {
-const addContactData = (contact) => {
-  data.push(contact);
-};
+  const addContactData = (contact) => {
+    data.push(contact);
+  };
 
   const createContainer = () => {
     const container = document.createElement("div");
@@ -189,7 +189,7 @@ const addContactData = (contact) => {
     ]);
 
     const table = createTable();
-    const {form, overlay} = createForm(title);
+    const { form, overlay } = createForm(title);
     const footer = createFooter(title);
 
     header.headerContainer.append(logo);
@@ -208,7 +208,7 @@ const addContactData = (contact) => {
 
   const createRow = ({ name: firstName, surname, phone, redact }) => {
     const tr = document.createElement("tr");
-    tr.classList.add('contact');
+    tr.classList.add("contact");
 
     const tdDel = document.createElement("td");
     tdDel.classList.add("delete");
@@ -224,6 +224,7 @@ const addContactData = (contact) => {
 
     const tdPhone = document.createElement("td");
     const phoneLink = document.createElement("a");
+    phoneLink.classList.add('phoneNum')
     phoneLink.href = `tel:${phone}`;
     phoneLink.textContent = phone;
     tr.phoneLink = phoneLink;
@@ -231,7 +232,7 @@ const addContactData = (contact) => {
 
     const tdRedact = document.createElement("td");
     const btnRedact = document.createElement("button");
-    btnRedact.classList.add('btn-redact');
+    btnRedact.classList.add("btn-redact");
     tdRedact.append(btnRedact);
 
     tr.append(tdDel, tdName, tdSurname, tdPhone, tdRedact);
@@ -269,9 +270,9 @@ const addContactData = (contact) => {
 
     btnAdd.addEventListener("click", openModal);
 
-    formOverlay.addEventListener('click', e => {
+    formOverlay.addEventListener("click", (e) => {
       const target = e.target;
-      if (target === formOverlay || target.classList.contains('close')) {
+      if (target === formOverlay || target.classList.contains("close")) {
         closeModal();
       }
     });
@@ -282,18 +283,23 @@ const addContactData = (contact) => {
   };
 
   const deleteControl = (btnDel, list) => {
-    btnDel.addEventListener('click', () => {
-      document.querySelectorAll('.delete').forEach(del => {
-        del.classList.toggle('is-visible');
-      })
+    btnDel.addEventListener("click", () => {
+      document.querySelectorAll(".delete").forEach((del) => {
+        del.classList.toggle("is-visible");
+      });
     });
 
-    list.addEventListener('click', e => {
+    list.addEventListener("click", (e) => {
       const target = e.target;
-      if (target.closest('.del-icon')) {
-        target.closest('.contact').remove();
+      if (target.closest(".del-icon")) {
+        let number = target.closest(".contact").querySelector('.phoneNum').textContent;
+        console.log(number);
+      
+        target.closest(".contact").remove();
+        removeStorage(number);
       }
     });
+
   };
 
   const addContactPage = (contact, list) => {
@@ -301,33 +307,57 @@ const addContactData = (contact) => {
   };
 
   const formControl = (form, list, closeModal) => {
-    form.addEventListener('submit', e => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const newContact = Object.fromEntries(formData);
-      
+      console.log(e.target);
+
       addContactPage(newContact, list);
       addContactData(newContact);
+      setStorage("contacts", newContact);
       form.reset();
       closeModal();
     });
-  }
+  };
+
+  const getStorage = (key) => {
+    const data = JSON.parse(localStorage.getItem(key)) || [];
+
+    return data;
+  };
+
+  const setStorage = (key, newData) => {
+    const currentData = getStorage(key);
+
+    currentData.push(newData);
+
+    localStorage.setItem(key, JSON.stringify(currentData));
+  };
+
+  const removeStorage = (number) => {
+    const contacts = getStorage("contacts");
+    console.log(contacts)
+
+    const updatedContacts = contacts.filter((contact) => contact.phone !== number);
+    console.log(updatedContacts)
+
+    localStorage.setItem("contacts", JSON.stringify(updatedContacts));
+  };
 
   const init = (selectorApp, title) => {
     const app = document.querySelector(selectorApp);
 
-    const { 
-      list,
-      logo,
-      btnAdd,
-      formOverlay,
-      form,
-      btnDel,
-     } = renderPhoneBook(app, title);
+    const { list, logo, btnAdd, formOverlay, form, btnDel } = renderPhoneBook(
+      app,
+      title
+    );
 
     //Функционал
-    const allRow = renderContacts(list, data);
-    const {closeModal} = modalControl(btnAdd, formOverlay);
+    const contacts = getStorage("contacts");
+    const removeContact = removeStorage("contacts");
+    const allRow = renderContacts(list, contacts);
+    const { closeModal } = modalControl(btnAdd, formOverlay);
 
     hoverRow(allRow, logo);
     deleteControl(btnDel, list);
